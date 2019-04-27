@@ -146,16 +146,16 @@ canvas.create_window(705, 164, window=canvas6)
 
 canvas7 = Canvas(fenetre, width=10, height=10, bg='white', highlightthickness=0, bd=0, relief='ridge')
 canvas7.create_oval(0, 0, 9, 9, width=1, fill='red', outline='red')
-canvas.create_window(600, 200, window=canvas7)
+canvas.create_window(550, 200, window=canvas7)
 
 canvas7 = Canvas(fenetre, width=10, height=10, bg='white', highlightthickness=0, bd=0, relief='ridge')
 canvas7.create_oval(0, 0, 9, 9, width=1, fill='blue', outline='blue')
-canvas.create_window(500, 200, window=canvas7)
+canvas.create_window(450, 200, window=canvas7)
 
 # Join variables with file path
-motor_file_path = '%s.txt' %(mtr.get())
-environment_file_path = '%s.txt' %(env.get())
-fins_file_path = '%s.txt' %(fns.get())
+motor_file_path = '%s.txt' % (mtr.get())
+environment_file_path = '%s.txt' % (env.get())
+fins_file_path = '%s.txt' % (fns.get())
 
 # Launch simulation
 simu_button = Button(fenetre, text='Launch simulation', bg='yellow', fg='black',
