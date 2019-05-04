@@ -49,7 +49,9 @@ def DispNoseCone():
 
 # Display geometrical nosecone in drawing
 def DisplayNose():
-    canvas1.grid(row=3, column=2, sticky='ne', ipady=40, in_=canvas0)
+    canvasX = Canvas(fenetre, width=75, height=50, bg='white', highlightthickness=0, bd=0, relief='ridge')
+    canvasX.grid(row=3, column=0, sticky='nsew', in_=canvas0)
+    canvas1.grid(row=3, column=1, sticky='nw', in_=canvas0)
 
 # Displays canvas in which are the tube's parameters
 def DispTube():
@@ -60,7 +62,7 @@ def DispTube():
 
 # Display geometrical tube in drawing
 def DisplayTube():
-    canvas2.grid(row=3, column=3, sticky='nw', in_=canvas0)
+    canvas2.grid(row=3, column=2, sticky='nw', in_=canvas0)
 
 # Displays canvas in which are the fins's parameters
 def DispFins():
@@ -71,8 +73,9 @@ def DispFins():
 
 # Display geometrical fins in drawing
 def DisplayFins():
-    canvas3.grid(row=3, column=6, rowspan=2, sticky='nw', in_=canvas0)
-    canvas4.grid(row=2, column=6, sticky='sw', in_=canvas0)
+    canvas3A.grid(row=3, column=7, rowspan=2, sticky='nw', in_=canvas0)
+    canvas3B.grid(row=1, column=7, rowspan=2, sticky='sw', in_=canvas0)
+    canvas3C.grid(row=3, column=8, sticky='nw', ipadx=70, in_=canvas0)
 
 # Ouvre une fenetre with title and icon
 fenetre = Tk()
@@ -249,37 +252,55 @@ env_choice.menu.add_radiobutton(label='Mexico', variable=env, value='Mexico envi
 env_choice.grid(row=1, column=1, padx=10, pady=10, ipadx=2, ipady=10, sticky='nswe', in_=canvasAB)
 
 # Design rocket, Second row of window
+# scale : 1 pixel <-> 3 millimeters
+# length : 3010 mm
+# diameter : 155.6 mm
 canvasB = Canvas(fenetre, bg='gray85', highlightthickness=3, bd=1, relief='sunken')
 canvasB.grid(row=1, column=0, sticky='nswe')
+canvasB.rowconfigure(0, weight=1)
+canvasB.columnconfigure(0, weight=1)
 
 # Quite superficial
 canvas0 = Canvas(fenetre, bg='white')
-canvas0.grid(row=0, column=0, sticky='nswe', padx=10, pady=10, ipadx=25, ipady=10, in_=canvasB)
+canvas0.grid(row=0, column=0, sticky='nsew', padx=10, pady=10, in_=canvasB)
+canvas0.rowconfigure(0, weight=1)
+canvas0.rowconfigure(1, weight=5)
+canvas0.rowconfigure(2, weight=1)
+canvas0.rowconfigure(3, weight=5)
+canvas0.rowconfigure(4, weight=1)
+
+# Scrollbar
+hbar=Scrollbar(canvasB, orient=HORIZONTAL)
+hbar.grid(row=1, column=0, sticky='ew', in_=canvasB)
+hbar.config(command=canvas0.xview)
+vbar=Scrollbar(canvasB, orient=VERTICAL)
+vbar.grid(row=0, column=1, sticky='ns', in_=canvasB)
+vbar.config(command=canvas0.yview)
+canvas0.configure(xscrollcommand=hbar.set, yscrollcommand=vbar.set)
 
 # Create canvas
-
 # Nosecone
-canvas1 = Canvas(fenetre, width=90, height=40, bg='white', highlightthickness=0, bd=0, relief='ridge')
-canvas1.create_arc(-31, 119, 205, 0, width=1, outline='blue', style=ARC, start=90, extent=90)
-canvas1.create_arc(-31, 39, 205, -80, width=1, outline='blue', style=ARC, start=-90, extent=-90)
-canvas1.create_line(88, 0, 88, 40, width=1, fill='blue')
+canvas1 = Canvas(fenetre, width=217, height=52, bg='white', highlightthickness=0, bd=0, relief='ridge')  # 300 mm + 350 mm
+canvas1.create_arc(-34, 149, 240, 0, width=1, outline='blue', style=ARC, start=90, extent=90)
+canvas1.create_arc(-34, 51, 240, -100, width=1, outline='blue', style=ARC, start=-90, extent=-90)
+canvas1.create_line(100, 0, 216, 0, width=1, fill='blue')
+canvas1.create_line(100, 51, 216, 51, width=1, fill='blue')
+canvas1.create_line(216, 0, 216, 51, width=1, fill='blue')
 
 # Tube
-canvas2 = Canvas(fenetre, width=800, height=40, bg='white', highlightthickness=0, bd=0, relief='ridge')
-canvas2.create_rectangle(0, 0, 799, 39, width=1, outline='blue')
+canvas2 = Canvas(fenetre, width=670, height=52, bg='white', highlightthickness=0, bd=0, relief='ridge')  # 2010 mm
+canvas2.create_rectangle(1, 0, 669, 51, width=1, outline='blue')
 
 # Fins
-canvas3 = Canvas(fenetre, width=80, height=45, bg='white', highlightthickness=0, bd=0, relief='ridge')
-canvas3.create_rectangle(1, 0, 79, 39, width=1, outline='blue')
-canvas3.create_polygon(1, 26, 79, 26, 65, 44, 50, 44, width=1, outline='blue', fill='')
+canvas3A = Canvas(fenetre, width=100, height=77, bg='white', highlightthickness=0, bd=0, relief='ridge')  # 350 mm
+canvas3A.create_rectangle(1, 0, 99, 51, width=1, outline='blue')
+canvas3A.create_polygon(4, 35, 97, 35, 81, 76, 40, 76, width=1, outline='blue', fill='')
 
-canvas4 = Canvas(fenetre, width=80, height=30, bg='white', highlightthickness=0, bd=0, relief='ridge')
-canvas4.create_polygon(1, 28, 50, 0, 65, 0, 79, 28, width=1, outline='blue', fill='')
+canvas3B = Canvas(fenetre, width=100, height=73, bg='white', highlightthickness=0, bd=0, relief='ridge')  # 215 mm (height fins), 280 mm (length fins)
+canvas3B.create_polygon(4, 71, 97, 71, 81, 0, 40, 0, width=1, outline='blue', fill='')
 
-# Last Part of rocket
-canvas5 = Canvas(fenetre, width=10, height=40, bg='white', highlightthickness=0, bd=0, relief='ridge')
-canvas5.create_polygon(1, 1, 9, 5, 9, 35, 1, 39, width=1, outline='blue', fill='')
-canvas5.grid(row=3, column=7, sticky='nw', ipadx=50, in_=canvas0)
+canvas3C = Canvas(fenetre, width=17, height=52, bg='white', highlightthickness=0, bd=0, relief='ridge')  # 50 mm
+canvas3C.create_polygon(1, 1, 16, 5, 16, 47, 1, 51, width=1, outline='blue', fill='')
 
 # Characteristics of rocket
 Name = 'Eiger'
@@ -290,7 +311,7 @@ Max_Diameter = 10.2
 canvas6 = Canvas(fenetre, width=200, height=40, bg='white', highlightthickness=0, bd=0, relief='ridge')
 canvas6.create_text(100, 20, text='%s \nLength %d cm, max.diameter %d cm \nMass with motors %d g' %
                             (Name, Length, Max_Diameter, Mass), fill='black', font='Arial 8 italic', justify='left')
-canvas6.grid(row=0, column=0, columnspan=3, padx=10, pady=10, ipady=27, sticky='nw', in_=canvas0)
+canvas6.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky='nw', in_=canvas0)
 
 Stability = 2.28
 CG = 114
@@ -300,7 +321,7 @@ Mach = 0.30
 canvas7 = Canvas(fenetre, width=100, height=50, bg='white', highlightthickness=0, bd=0, relief='ridge')
 canvas7.create_text(50, 25, text='Stability : %s cal \nCG : %d cm \nCP %d cm \nat M=%d' % (Stability, CG, CP, Mach),
                     fill='black', font='Arial 8 italic', justify='left')
-canvas7.grid(row=0, column=5, columnspan=3, padx=10, pady=10, sticky='ne', in_=canvas0)
+canvas7.grid(row=0, column=6, columnspan=3, padx=10, pady=10, sticky='ne', in_=canvas0)
 
 Apogee = 3040
 max_v = 107
@@ -310,7 +331,11 @@ Mach_v = 0.32
 canvas8 = Canvas(fenetre, width=200, height=40, bg='white', highlightthickness=0, bd=0, relief='ridge')
 canvas8.create_text(100, 20, text='Apogee : %d m \nMax. velocity : %d m.s-1   (Mach %d) \nMax. acceleration : '
                       '%d m.s-2' % (Apogee, max_v, Mach_v, max_a), font='Arial 8 italic', fill='blue', justify='left')
-canvas8.grid(row=5, column=0, columnspan=3, padx=10, pady=10, sticky='nw', in_=canvas0)
+canvas8.grid(row=5, column=0, columnspan=2, padx=10, pady=10, sticky='nw', in_=canvas0)
+
+# Bouton de sortie
+# stop = Button(fenetre, text="x", bg='RED', fg='white', command=fenetre.quit)
+# stop.grid(row=1, column=1, sticky='nswe', in_=canvasB)
 
 # Disp window
 fenetre.mainloop()
