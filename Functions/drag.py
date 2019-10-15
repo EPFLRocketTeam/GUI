@@ -1,6 +1,7 @@
 from termcolor import colored
 import math
 from scipy import interpolate
+import numpy as np
 
 def drag(rocket, alpha, Uinf, nu, a):
 	'''
@@ -149,34 +150,48 @@ def drag(rocket, alpha, Uinf, nu, a):
 	etak = interpolate.interp1d(etatab[0],etatab[1],kind='linear',fill_value="extrapolate")(rocket.stage_z[-1]/dm)
 	deltak=interpolate.interp1d(deltaktab[0],deltaktab[1],kind='linear',fill_value="extrapolate")(rocket.stage_z[-1]/dm)
 
-	"""
+	
 	# 5.1.2 Compute body drag at angle of attack alpha
 	# 5.1.2.1 x1 as defined by explanations of (eq 140, p 404)
-	x1 = Rocket.stage_z(find(diff(Rocket.diameters)==0, 1, 'first'));
-	# 5.1.2.2 x0 as in (eq 140, p404)
-	x0 = 0.55*x1+0.36*Rocket.stage_z[-1];
-	# 5.1.2.3 Section Area at station x0
-	S0 = pi*interp1(Rocket.stage_z, Rocket.diameters, x0, 'linear')^2/4;
-	# 5.1.2.4 Body drag at low AoA (eq 139, p. 404)
-	CDB_alpha = 2*deltak*S0/Sm*alpha*sin(alpha);
-	tmp_stages = [x0, Rocket.stage_z(Rocket.stage_z>x0)];
-	tmp_diameters = [interp1(Rocket.stage_z, Rocket.diameters, x0, 'linear'), Rocket.diameters(Rocket.stage_z>x0)];
-	# 5.1.2.4 Body drag at high AoA (eq 142, p. 406)
-	CDB_alpha = CDB_alpha + 2*alpha^2*sin(alpha)/Sm*etak*1.2*sum((tmp_diameters(1, end-1)+tmp_diameters(2:end))/2.*(tmp_stages(2:end)-tmp_stages(1:end-1)));
 
+	# order list of indices where diff(rocket.diameters) == 0
+	indices = [i for i,x in enumerate(np.diff(rocket.diameters)) if x==0]
+	x1 = rocket.stage_z[indices[0]];
+
+
+	# 5.1.2.2 x0 as in (eq 140, p404)
+	x0 = 0.55*x1+0.36*rocket.stage_z[-1];
+	
+	# 5.1.2.3 Section Area at station x0
+	S0 = math.pi*(interpolate.interp1d(rocket.stage_z, rocket.diameters, kind='linear')(x0))**2/4;
+	# 5.1.2.4 Body drag at low AoA (eq 139, p. 404)
+	
+	CDB_alpha = 2*deltak*S0/Sm*alpha*math.sin(alpha);
+
+	# order list of indices where rocket.stage_z>x0
+	indices = [i for i,x in enumerate(rocket.stage_z) if x>x0]
+
+	tmp_stages = [x0] + [rocket.stage_z[i] for i,_ in enumerate(indices)]
+	tmp_diameters = [interpolate.interp1d(rocket.stage_z, rocket.diameters, kind='linear')(x0)] + [rocket.diameters[i] for i,_ in enumerate(indices)];
+	#TODO, vrifier format
+
+	# 5.1.2.4 Body drag at high AoA (eq 142, p. 406)
+	op = (tmp_diameters[0: -1-1][0]+tmp_diameters[1:-1][0])/2*(tmp_stages[1:-1][0]-tmp_stages[0:-1-1][0])
+	CDB_alpha = CDB_alpha + 2*alpha**2*math.sin(alpha)/Sm*etak*1.2*op;
 	# 5.2 Fin drag at AoA
+	
 	# 5.2.1 Fin Exposed Surface Coefficient
 	# TODO: Consider rocket roll for lateral exposed fin surface
 	FESC = 2;
 	# 5.2.2 induced fin drag, similar to (eq 145, p 413)
-	CDi = 1.2*alpha^2*SF/Sm*FESC;
+	CDi = 1.2*alpha**2*SF/Sm*FESC;
 	# 5.2.3 Interference coefficients as estimated by Hassan (eq 34 and 35, p
 	# 12) based on Mandell Fig. 40 p 416.
-	Rs = df/(2*Rocket.fin_s+df); % Total fin span ratio
-	KFB = 0.8065*Rs^2+1.1553*Rs; % Interference of body on fin lift
-	KBF = 0.1935*Rs^2+0.8174*Rs+1; % Interference of fins on body lift
+	Rs = df/(2*rocket.fin_s+df); # Total fin span ratio
+	KFB = 0.8065*Rs**2+1.1553*Rs; # Interference of body on fin lift
+	KBF = 0.1935*Rs**2+0.8174*Rs+1; # Interference of fins on body lift
 	# 5.2.4 Interference Drag Coefficient (eq 146, p 415)
-	DCDi = (KFB + KBF - 1)*3.12*SE/Sm*alpha^2*FESC; % Interference drag
+	DCDi = (KFB + KBF - 1)*3.12*SE/Sm*alpha**2*FESC; # Interference drag
 	CDF_alpha = CDi + DCDi;
 
 	# 5.3 Total drag at AoA (eq 148, p 417)
@@ -186,11 +201,11 @@ def drag(rocket, alpha, Uinf, nu, a):
 	# 7. Drag of tumbeling body (c.f. OpenRocket Documentation section 3.5)
 	# -------------------------------------------------------------------------
 	fin_efficiency = [0.5, 1, 1.5, 1.41, 1.81, 1.73, 1.9, 1.85];
-	CD_t_fin = 1.42*fin_efficiency(Rocket.fin_n);
+	CD_t_fin = 1.42*fin_efficiency[int(rocket.fin_n)-1];
 	CD_t_body = 0.56;
 
-	CD_t = (SE*CD_t_fin+CD_t_body*dm*(Rocket.stage_z(end)-Rocket.stage_z(2)))/Sm;
-
+	CD_t = (SE*CD_t_fin+CD_t_body*dm*(rocket.stage_z[-1]-rocket.stage_z[1]))/Sm;
+	
 	# -------------------------------------------------------------------------
 	# 6. Subsonic drag coefficient
 	# -------------------------------------------------------------------------
@@ -204,12 +219,11 @@ def drag(rocket, alpha, Uinf, nu, a):
 	# 7. Compressible flow correction factor (for a sharp nose) (eq 214, p 482)
 	# -------------------------------------------------------------------------
 	M = Uinf/a;
-	if M>0.9 && M<=1.05:
-	    CD = CD*(1 + 35.5*(M-0.9)^2)
-	elif M > 1.05 && M <=2:
+	if M>0.9 and M<=1.05:
+	    CD = CD*(1 + 35.5*(M-0.9)**2)
+	elif M > 1.05 and M <=2:
 	    CD = CD*(1.27+0.53*exp(-5.2*(M-1.05)))
-	elif M > 2 && ~(M<=0.9):
+	elif M > 2 and not(M<=0.9):
 	    print(colored('WARNING: In drag calculation, Mach number exceeds validity range.', 'red'))
 
 	return CD
-	"""
