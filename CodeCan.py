@@ -1,18 +1,13 @@
-## Nettoyage du Workspace
-#note sure this is usefull in python
-#clear all
-#close all
-#clc
-
 ## Info sur le code 
 #traduction en python 16/10/19
 
 # Fichiers utilisés : Rocket definition (Declarations --> Environment -->)
 #                     Rocket reader 
 
-# Fonctions utilisés : std atmos (functions --> stdatmos) modèle de l'environnement
+# Fonctions utilisées : std atmos (functions --> stdatmos) modèle de l'environnement
 #                      drag + drag shuriken
-#                      bissection
+#                      
+# fonctions non utilisées : bissection, thrust
 
 # Commande 'complexe' : polyval + 
 
@@ -21,19 +16,17 @@
 
 
 import math
-from drag import *
-from bisection import *
-from Thrust import *
-from drag_shuriken import *
-from rocketReader import *
-from environnementReader import *
-import numpy as np
+import Functions
+from Functions.drag import *
+from Functions.bisection import *
+from Functions.Thrust import *
+from Functions.drag_shuriken import *
+from Functions.rocketReader import *
+from Functions.environnementReader import *
 from numpy import *
 from scipy import interpolate
-from stdAtmos import *
+from Functions.stdAtmos import *
 
-# ## import arctangeante
-# termcolor import colored
 
 ## Définition des modèles/fonctions
 
@@ -98,4 +91,10 @@ ax=(Vvect[-1]-Vvect[-2])/dt;
 axb=ax # +...,
 axvect=[axvect, ax];
 axbvect=[axbvect, axb];
+
+print(axvect)
+print(Xvect)
+print(Vvect)
+print(Pdynvect)
+print(Pdynbvect)
 

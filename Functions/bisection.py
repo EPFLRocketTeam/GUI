@@ -1,7 +1,7 @@
 import math
 from scipy import interpolate
 import numpy as np
-#inutile pour le moment car utilisation du microcontrolleur à la place 
+#inutile pour le moment (20/10/19) car utilisation du microcontrolleur à la place 
 def bisection(x10,x20,x1o,x2o,Environment,Rocket):
 
 

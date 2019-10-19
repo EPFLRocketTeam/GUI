@@ -11,7 +11,7 @@ def stdAtmos(alt,Environnement):
 #           - a     : local speed of sound [m/s]
 #           - p     : local standard pressure [Pa]
 #           - rho   : local standard density [kg/m^3]
-#
+#	    - nu    : local viscosity [kg/(m*s)]
 # ASSUMPTIONS:
 # - hydrostatic approximation of atmosphere
 # - linear temperature variation with altitude

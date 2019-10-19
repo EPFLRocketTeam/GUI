@@ -2,7 +2,7 @@ from termcolor import colored
 import math
 from scipy import interpolate
 import numpy as np
-from Thrust import Thrust,trapz
+from Functions.Thrust import *
 
 def toFloat(data):
         """
