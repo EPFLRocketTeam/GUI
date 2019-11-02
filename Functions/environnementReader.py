@@ -59,7 +59,7 @@ def environnementReader(environnementFilePath) :
 # 2.1 Environnement Viscosity
 
 
-    with open('/home/antoine/Téléchargements/viscosity.csv') as csv_file:
+    with open('viscosity.csv') as csv_file:
 
         Tmp = csv.reader(csv_file, delimiter=',')
 
