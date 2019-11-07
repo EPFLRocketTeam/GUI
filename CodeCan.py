@@ -17,24 +17,30 @@
 
 import math
 import Functions
-from Functions.drag import *
-from Functions.bisection import *
-from Functions.Thrust import *
-from Functions.drag_shuriken import *
-from Functions.rocketReader import *
-from Functions.environnementReader import *
+#from Functions.drag import *
+#from Functions.bisection import *
+#from Functions.Thrust import *
+#from Functions.drag_shuriken import *
+#from Functions.rocketReader import *
+#from Functions.environnementReader import *
 from numpy import *
 from scipy import interpolate
-from Functions.stdAtmos import *
+#from Functions.stdAtmos import *
 
 # Communication with the CAN
 from PCANBasic import *
+import struct
 
 KALMAN_BOARD_ID = 0
 
 DATA_ID_ACCELERATION_X = 1
 DATA_ID_ACCELERATION_Y = 2
 DATA_ID_ACCELERATION_Z = 3
+DATA_ID_GYRO_X = 4
+DATA_ID_GYRO_Y = 5
+DATA_ID_GYRO_Z = 6
+DATA_ID_CALIB_PRESSURE = 13
+DATA_ID_PRESSURE = 0
 
 
 def readCanData():
@@ -50,10 +56,8 @@ def readCanData():
 def SendCanData(data, msg_id):
 	MessageBuffer = TPCANMsg()
 
-	MessageBuffer.ID = 0
-	MessageBuffer.MSGTYPE = PCAN_MESSAGE_STANDARD # can also try PCAN_MESSAGE_EXTENDED
-	MessageBuffer.LEN = 8
-	MessageBuffer.DATA = (data << 4) + (msg_id << 3)
+	MessageBuffer.setID(0)
+	MessageBuffer.setData(bytearray(struct.pack("f", data)))
 
 	objPCAN.Write(PCAN_USBBUS1, MessageBuffer);
 
@@ -90,6 +94,10 @@ g=9.81;
 #### TODO ####
 print('TODO: Ask Thomas')
 P0=Environment.Pressure_Ground;
+
+SendCanData(P0, DATA_ID_CALIB_PRESSURE) # acc z
+
+
 # L'avionics à besoin d'avoir la pression au sol pour le Kalman, on lui
 # envoie donc P0 avant de commencer la transmission (demander précison à Thomas)
 
@@ -146,6 +154,36 @@ Pstatbvect=[Pstatb];
 # UNE OUVERTURE INSTANTANNEE DES AIRBRAKES, ET UNE CHAINE AVIONICS
 # IMMEDIATE POUR L'INSTANT
 
+SendCanData(0., DATA_ID_ACCELERATION_X) # acc x
+SendCanData(0., DATA_ID_ACCELERATION_Y) # acc y
+SendCanData(axvect[-1], DATA_ID_ACCELERATION_Z) # acc z
+#SendCanData(0., DATA_ID_GYRO_X) # angle rate
+#SendCanData(0., DATA_ID_GYRO_y) # angle rate
+#SendCanData(0., DATA_ID_GYRO_z) # angle rate
+SendCanData(Pstatvect[-1], DATA_ID_PRESSURE) # pression statique (à cette altitude)
+
+while (True):
+    # Check the receive queue for new messages
+    #
+    readResult = objPCAN.Read(PCAN_USBBUS1)
+    if readResult[0] != PCAN_ERROR_QRCVEMPTY:
+        # Process the received message
+        #
+        #print("A message was received")
+        count += 1
+        #print("Method code", readResult[0])
+        print("ID", readResult[1].getID())
+       # print("MSGTYPE", readResult[1].MSGTYPE)
+        print("LEN", readResult[1].LEN)
+        #print("DATA", readResult[1].DATA)
+        print("DATA", readResult[1].__str__())
+        #print("")
+        #ProcessMessage(result[1],result[2]) # Possible processing function, ProcessMessage(msg,timestamp)
+    else:
+        pass
+	    #print("PROB") # An error occurred, get a text describing the error and show it
+	    #result = objPCAN.GetErrorText(readResult[0])
+	    #print(result[1])
 
 while(v>0.01):
 
@@ -155,15 +193,15 @@ while(v>0.01):
 	print("Q: --> imub[0]--> 0 à 5?")
 	SendCanData(0., DATA_ID_ACCELERATION_X) # acc x
 	SendCanData(0., DATA_ID_ACCELERATION_Y) # acc y
-	SendCanData(x, DATA_ID_ACCELERATION_Z) # acc z
-	SendCanData(0., TODO) # angle rate
-	SendCanData(0., TODO) # angle rate
-	SendCanData(0., TODO) # angle rate
-	SendCanData(Pstatvect[-1], TODO) # pression statique (à cette altitude)
-	SendCanData(P0, TODO) # pression de base (à l’altitude delancement)
-	SendCanData(0., TODO) # Zdata 0
-	SendCanData(0., TODO) # Zdata 1
-	SendCanData(0., TODO) # Zdata 2
+	SendCanData(axvect[-1], DATA_ID_ACCELERATION_Z) # acc z
+	#SendCanData(0., DATA_ID_GYRO_X) # angle rate
+	#SendCanData(0., DATA_ID_GYRO_y) # angle rate
+	#SendCanData(0., DATA_ID_GYRO_z) # angle rate
+	SendCanData(Pstatvect[-1], DATA_ID_PRESSURE) # pression statique (à cette altitude)
+	#SendCanData(P0, TODO) # pression de base (à l’altitude delancement)
+	#SendCanData(0., TODO) # Zdata 0
+	#SendCanData(0., TODO) # Zdata 1
+	#SendCanData(0., TODO) # Zdata 2
 	print("Q: What to send here????")
 	SendCanData(0., TODO) # Zdata.3= Alt(P) altitude en fonction de la pression
 
@@ -219,6 +257,7 @@ if result != PCAN_ERROR_OK:
     print(result[1])
 else:
     print("PCAN-USB (Ch-1) was released")
+
 
 
 
