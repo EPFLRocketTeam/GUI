@@ -48,16 +48,21 @@ def readCanData():
 	readResult = objPCAN.Read(PCAN_USBBUS1);
 	while (readResult[1].getID() != KALMAN_BOARD_ID): # We expect results from the KALMAN BOARD
 			readResult = objPCAN.Read(PCAN_USBBUS1)
-	data = readResult[1].DATA >> 4
-	msg_id = (readResult[1].DATA << 4) >> 7
 
-	return data
+	data = 0
+	for i in range(4):
+		data_i = str(readResult[1].DATA[i])
+		data += int(data_i) * (256**(4-1-i))
+	msg_id = str(readResult[1].DATA[4])
+
+	return data, msg_id
 
 def SendCanData(data, msg_id):
 	MessageBuffer = TPCANMsg()
 
 	MessageBuffer.setID(0)
-	MessageBuffer.setData(bytearray(struct.pack("f", data)))
+	# Data = {data, msg_id, timestamp}
+	MessageBuffer.setData([data >> 24, data >> 16, data >> 8, data >> 0, msg_id >> 0, 0, 0, 0])
 
 	objPCAN.Write(PCAN_USBBUS1, MessageBuffer);
 
@@ -95,7 +100,7 @@ g=9.81;
 print('TODO: Ask Thomas')
 P0=Environment.Pressure_Ground;
 
-SendCanData(P0, DATA_ID_CALIB_PRESSURE) # acc z
+SendCanData(int(P0), DATA_ID_CALIB_PRESSURE) # acc z
 
 
 # L'avionics à besoin d'avoir la pression au sol pour le Kalman, on lui
@@ -154,13 +159,13 @@ Pstatbvect=[Pstatb];
 # UNE OUVERTURE INSTANTANNEE DES AIRBRAKES, ET UNE CHAINE AVIONICS
 # IMMEDIATE POUR L'INSTANT
 
-SendCanData(0., DATA_ID_ACCELERATION_X) # acc x
-SendCanData(0., DATA_ID_ACCELERATION_Y) # acc y
-SendCanData(axvect[-1], DATA_ID_ACCELERATION_Z) # acc z
+SendCanData(0, DATA_ID_ACCELERATION_X) # acc x
+SendCanData(0, DATA_ID_ACCELERATION_Y) # acc y
+SendCanData(int(axvect[-1]), DATA_ID_ACCELERATION_Z) # acc z
 #SendCanData(0., DATA_ID_GYRO_X) # angle rate
 #SendCanData(0., DATA_ID_GYRO_y) # angle rate
 #SendCanData(0., DATA_ID_GYRO_z) # angle rate
-SendCanData(Pstatvect[-1], DATA_ID_PRESSURE) # pression statique (à cette altitude)
+SendCanData(int(Pstatvect[-1]), DATA_ID_PRESSURE) # pression statique (à cette altitude)
 
 while (True):
     # Check the receive queue for new messages
@@ -189,24 +194,12 @@ while(v>0.01):
 
 	Sleep(1000);
 
-	# send data to the CAN
-	print("Q: --> imub[0]--> 0 à 5?")
-	SendCanData(0., DATA_ID_ACCELERATION_X) # acc x
-	SendCanData(0., DATA_ID_ACCELERATION_Y) # acc y
-	SendCanData(axvect[-1], DATA_ID_ACCELERATION_Z) # acc z
-	#SendCanData(0., DATA_ID_GYRO_X) # angle rate
-	#SendCanData(0., DATA_ID_GYRO_y) # angle rate
-	#SendCanData(0., DATA_ID_GYRO_z) # angle rate
-	SendCanData(Pstatvect[-1], DATA_ID_PRESSURE) # pression statique (à cette altitude)
-	#SendCanData(P0, TODO) # pression de base (à l’altitude delancement)
-	#SendCanData(0., TODO) # Zdata 0
-	#SendCanData(0., TODO) # Zdata 1
-	#SendCanData(0., TODO) # Zdata 2
-	print("Q: What to send here????")
-	SendCanData(0., TODO) # Zdata.3= Alt(P) altitude en fonction de la pression
 
 	# read theta from the CAN
-	theta = readCanData()
+	theta, msg_id = readCanData()
+
+	if msg_id == TODO: #TODO, check msg id
+		pass
 
 	# On update le modèle du drag selon la valeur de théta
 	CD0=drag(Rocket,0,v,nu,a); # Drag de la fusée à angle d'attaque 0 (1D pour l'instant)
@@ -242,6 +235,22 @@ while(v>0.01):
 	axb=ax  # +...,
 	axvect.append(ax);
 	axbvect.append(axb);
+
+	# send data to the CAN
+	print("Q: --> imub[0]--> 0 à 5?")
+	SendCanData(0, DATA_ID_ACCELERATION_X) # acc x
+	SendCanData(0, DATA_ID_ACCELERATION_Y) # acc y
+	SendCanData(int(axvect[-1]), DATA_ID_ACCELERATION_Z) # acc z
+	#SendCanData(0., DATA_ID_GYRO_X) # angle rate
+	#SendCanData(0., DATA_ID_GYRO_y) # angle rate
+	#SendCanData(0., DATA_ID_GYRO_z) # angle rate
+	SendCanData(int(Pstatvect[-1]), DATA_ID_PRESSURE) # pression statique (à cette altitude)
+	#SendCanData(P0, TODO) # pression de base (à l’altitude delancement)
+	#SendCanData(0., TODO) # Zdata 0
+	#SendCanData(0., TODO) # Zdata 1
+	#SendCanData(0., TODO) # Zdata 2
+	print("Q: What to send here????")
+	SendCanData(0, TODO) # Zdata.3= Alt(P) altitude en fonction de la pression
 
 	print(x)
 	print(v)
