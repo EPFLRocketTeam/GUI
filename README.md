@@ -5,5 +5,6 @@ Interface graphique
   - Sensor bloque a 45
   - Probleme write CAN
   - Bad Sensor Value (IMU)
+  - Nonetheless, Temperature OK
 
 
